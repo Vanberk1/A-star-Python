@@ -10,16 +10,20 @@ class Node:
         self.f = g + h
         self.parent = parent
         self.visited = False
-        self.subTour = []
-        currentNode = self
-        while currentNode != None:
-            self.subTour.append(id)
-            currentNode = currentNode.parent
+        self.subtour = []
 
-    def MakeSuccessors(self, citiesCant, distanceMatrix):
-        self.successors = []
-        for i in range(self.id + 1, citiesCant):
-            break
+    def MakeSuccessors(self, cities):
+        self.successors = cities
+        print(self.subTour)
+        for city in self.subTour:
+            print(city)
+            self.successors.remove(city)
+
+    def UpdateSubtour(self, newCity):
+        self.subtour.append(newCity)
+        
+
+            
 
 
 def EuclideanDistance(node1, node2):
@@ -83,19 +87,19 @@ for city in cities:
     citiesTSP.append(city - 1)
 
 openList = makefheap()
-notVisited = citiesTSP
+notVisited = citiesTSP[1:]
+nodesCount = 0
 
-startNode = Node(citiesTSP[0], distanceMatrix[0][0], InOut(minimunEdges, citiesTSP, 0), None)
+startNode = Node(nodesCount, distanceMatrix[0][0], InOut(minimunEdges, citiesTSP, 0), None)
+startNode.UpdateSubtour(citiesTSP[0])
 fheappush(openList, (startNode.f, startNode))
-print(citiesTSP)
-notVisited.remove(0)
-print(notVisited)
+print(citiesTSP) 
 
 while openList.num_nodes:
     currentNode = fheappop(openList)[1]
     # for x in currentNode.subTour:
     #     print(x)
-    currentTour = currentNode.subTour
+    currentTour = currentNode.subtour
     print(currentTour)
     if len(currentTour) == citiesCant + 1 and currentTour[0] == currentTour[len(currentTour) - 1]:
         print("Finished!")
@@ -106,11 +110,15 @@ while openList.num_nodes:
         if city not in currentTour:
             notVisited.append(city)
 
-    for x in range(currentNode.id + 1, citiesCant):
-        print(currentNode.id, x)
-        newNode = Node(x, distanceMatrix[currentNode.id][x], InOut(minimunEdges, notVisited, x), currentNode)
-        print(newNode.f)
-        fheappush(openList, (newNode.f, newNode))
+    print("Not visited:", notVisited)
+
+    for cityId in citiesTSP:
+        if cityId != currentNode.id:
+            nodesCount += 1
+            newNode = Node(nodesCount, distanceMatrix[currentNode.id][cityId] + currentNode.g, InOut(minimunEdges, notVisited, cityId), currentNode)
+            print(currentNode.id, newNode.id, newNode.f)
+            # print(newNode.successors)
+            fheappush(openList, (newNode.f, nodesCount, newNode))
 
     break
      
