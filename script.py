@@ -92,13 +92,14 @@ nodesCount = 0
 
 startNode = Node(nodesCount, distanceMatrix[0][0], InOut(minimunEdges, citiesTSP, 0), None)
 startNode.UpdateSubtour(citiesTSP[0])
-fheappush(openList, (startNode.f, startNode))
+fheappush(openList, (startNode.f, 0, startNode))
 print(citiesTSP) 
 
 while openList.num_nodes:
-    currentNode = fheappop(openList)[1]
+    currentNode = fheappop(openList)[2]
     # for x in currentNode.subTour:
     #     print(x)
+    print(currentNode)
     currentTour = currentNode.subtour
     print(currentTour)
     if len(currentTour) == citiesCant + 1 and currentTour[0] == currentTour[len(currentTour) - 1]:
@@ -120,6 +121,6 @@ while openList.num_nodes:
             # print(newNode.successors)
             fheappush(openList, (newNode.f, nodesCount, newNode))
 
-    break
+
      
 print("Error")
