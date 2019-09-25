@@ -110,7 +110,7 @@ while openList.num_nodes:
         print(currentNode.id, x)
         newNode = Node(x, distanceMatrix[currentNode.id][x], InOut(minimunEdges, notVisited, x), currentNode)
         print(newNode.f)
-        #fheappush(openList, (newNode.f, newNode))
+        fheappush(openList, (newNode.f, newNode))
 
     break
      
