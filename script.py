@@ -3,28 +3,22 @@ from fibheap import *
 
 print("Hello A*")
 class Node:
-    def __init__(self, id=None, g=None, h=None, parent=None):
+    def __init__(self, id, cityId, g=None, h=None, parent=None):
         self.id = id
+        self.cityId = cityId
         self.g = g
         self.h = h
         self.f = g + h
         self.parent = parent
-        self.visited = False
-        self.subtour = []
+        self.successors = []
+        if parent != None:
+            self.subtour = parent.subtour.copy()
+            self.subtour.append(cityId)
+        else:
+            self.subtour = [cityId]
 
-    def MakeSuccessors(self, cities):
-        self.successors = cities
-        print(self.subTour)
-        for city in self.subTour:
-            print(city)
-            self.successors.remove(city)
-
-    def UpdateSubtour(self, newCity):
-        self.subtour.append(newCity)
-        
-
-            
-
+    def AddSuccessor(self, succ):
+        self.successors.append(succ)
 
 def EuclideanDistance(node1, node2):
     return math.sqrt((node2[0] - node1[0])**2 + (node2[1] - node1[1])**2)
@@ -66,6 +60,17 @@ for i in range(0, citiesCant):
             distanceMatrix[i][j] = eucDis
             distanceMatrix[j][i] = eucDis
 
+
+# REMOVE NEXT LINES TO USE THE ORIGINAL MATRIX
+distanceMatrixAux = [[0, 2, 4, 5],
+                     [2, 0, 5, 2],
+                     [4, 5, 0, 3],
+                     [5, 2, 3, 0]]
+distanceMatrix = distanceMatrixAux
+citiesCant = 4
+cities = [1, 2, 3, 4]
+# ///////////////////////////////////////////////
+
 minimunEdges = []
 
 for i in range(0, citiesCant):
@@ -74,6 +79,7 @@ for i in range(0, citiesCant):
         if i != j:
             if minimunEdges[i][0] >= distanceMatrix[i][j]:
                 minimunEdges[i][1] = minimunEdges[i][0]
+                minimunEdges[i][0] = distanceMatrix[i][j]
                 minimunEdges[i][0] = distanceMatrix[i][j]
 
 # for i in range(0, citiesCant):
@@ -90,18 +96,16 @@ openList = makefheap()
 notVisited = citiesTSP[1:]
 nodesCount = 0
 
-startNode = Node(nodesCount, distanceMatrix[0][0], InOut(minimunEdges, citiesTSP, 0), None)
-startNode.UpdateSubtour(citiesTSP[0])
+startNode = Node(nodesCount, 0, distanceMatrix[0][0], InOut(minimunEdges, citiesTSP, 0), None)
+print("Start subtour:", startNode.subtour)
 fheappush(openList, (startNode.f, 0, startNode))
-print(citiesTSP) 
+times = 0
 
 while openList.num_nodes:
     currentNode = fheappop(openList)[2]
-    # for x in currentNode.subTour:
-    #     print(x)
-    print(currentNode)
+    print(currentNode.successors)
     currentTour = currentNode.subtour
-    print(currentTour)
+    print("Current tour:", currentTour)
     if len(currentTour) == citiesCant + 1 and currentTour[0] == currentTour[len(currentTour) - 1]:
         print("Finished!")
         break
@@ -113,14 +117,24 @@ while openList.num_nodes:
 
     print("Not visited:", notVisited)
 
-    for cityId in citiesTSP:
+    for cityId in notVisited:
+        print("Current tour in for:", currentTour)
         if cityId != currentNode.id:
+            print("City id:", cityId)
             nodesCount += 1
-            newNode = Node(nodesCount, distanceMatrix[currentNode.id][cityId] + currentNode.g, InOut(minimunEdges, notVisited, cityId), currentNode)
-            print(currentNode.id, newNode.id, newNode.f)
-            # print(newNode.successors)
+            newNode = Node(nodesCount, cityId, distanceMatrix[currentNode.cityId][cityId] + currentNode.g, InOut(minimunEdges, notVisited, cityId), currentNode)
+            print("parent tour:", newNode.parent.subtour)
+            print("actual id:", currentNode.id, "new id:", newNode.id, "f:", newNode.f)
+            print("Subtour:", newNode.subtour)
+            currentNode.AddSuccessor(newNode)
             fheappush(openList, (newNode.f, nodesCount, newNode))
 
+
+
+    # if times >= 10:
+    #     break
+
+    # times += 1
 
      
 print("Error")
