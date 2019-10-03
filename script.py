@@ -1,8 +1,93 @@
 import math
-from fibheap import *
+import time
+
+class BinaryHeap:
+    def __init__(self):
+        self.__heap = []
+        self.__last_index = -1
+
+    def push(self, value):
+        self.__last_index += 1
+        if self.__last_index < len(self.__heap):
+            self.__heap[self.__last_index] = value
+        else:
+            self.__heap.append(value)
+        self.__siftup(self.__last_index)
+
+    def pop(self):
+        if self.__last_index == -1:
+            raise IndexError('pop from empty heap')
+
+        min_value = self.__heap[0]
+
+        self.__heap[0] = self.__heap[self.__last_index]
+        self.__last_index -= 1
+        self.__siftdown(0)
+
+        return min_value
+
+    def __siftup(self, index):
+        while index > 0:
+            parent_index, parent_value = self.__get_parent(index)
+
+            if parent_value.f <= self.__heap[index].f:
+                break
+
+            self.__heap[parent_index], self.__heap[index] =\
+                self.__heap[index], self.__heap[parent_index]
+
+            index = parent_index
+
+    def __siftdown(self, index):
+        while True:
+            index_value = self.__heap[index]
+
+            left_child_index, left_child_value = self.__get_left_child(index, index_value)
+            right_child_index, right_child_value = self.__get_right_child(index, index_value)
+
+            if index_value.f <= left_child_value.f and index_value.f <= right_child_value.f:
+                break
+
+            if left_child_value.f < right_child_value.f:
+                new_index = left_child_index
+            else:
+                new_index = right_child_index
+
+            self.__heap[new_index], self.__heap[index] =\
+                self.__heap[index], self.__heap[new_index]
+
+            index = new_index
+
+    def __get_parent(self, index):
+        if index == 0:
+            return None, None
+
+        parent_index = (index - 1) // 2
+
+        return parent_index, self.__heap[parent_index]
+
+    def __get_left_child(self, index, default_value):
+        left_child_index = 2 * index + 1
+
+        if left_child_index > self.__last_index:
+            return None, default_value
+
+        return left_child_index, self.__heap[left_child_index]
+
+    def __get_right_child(self, index, default_value):
+        right_child_index = 2 * index + 2
+
+        if right_child_index > self.__last_index:
+            return None, default_value
+
+        return right_child_index, self.__heap[right_child_index]
+
+    def __len__(self):
+        return self.__last_index + 1
 
 class Node:
     def __init__(self, id, cityId, g=None, parent=None, minimunEdgesList=None, w=None):
+        LARGE = 1000000
         self.id = id
         self.cityId = cityId
         self.g = g
@@ -13,7 +98,7 @@ class Node:
             self.subtour.append(cityId)
         else:
             self.subtour = [cityId]
-        self.f = g + self.InOut(minimunEdgesList, w)
+        self.f = (g + self.InOut(minimunEdgesList, w)) * LARGE - g
 
     def AddSuccessor(self, succ):
         # print("New succ:", succ)
@@ -46,7 +131,7 @@ citiesCant = 0
 for i in range(1, len(content)):
     line = content[i].split()
     cities.append((int(line[0], )))
-    citiesCoordinates.append((int(line[1]), int(line[2])))
+    citiesCoordinates.append((float(line[1]), float(line[2])))
     citiesCant += 1
 
 print(citiesCant, "\n")
@@ -86,66 +171,73 @@ for i in range(0, citiesCant):
     auxDistance.sort()
     minimunEdges.append(auxDistance[1:3])
 
-print(minimunEdges)
+# print(minimunEdges)
 
-for i in range(0, citiesCant):
-    for j in range(0, citiesCant):
-        print(distanceMatrix[i][j], " ", end = "")
-    print("")
+# for i in range(0, citiesCant):
+#     for j in range(0, citiesCant):
+#         print(distanceMatrix[i][j], " ", end = "")
+#     print("")
 
 
 citiesTSP = []
 for city in cities:
     citiesTSP.append(city - 1)
 
-openList = makefheap()
+openList = BinaryHeap()
 notVisited = citiesTSP[1:]
 nodesCount = 0
 w = 1.0
 if citiesCant >= 10 and citiesCant < 25:
-    w = 1.4
+    w = 1.1
 elif citiesCant >= 25 and citiesCant < 35:
-    w = 1.7
+    w = 1.3
 elif citiesCant >= 35:
-    w = 2
-
+    w = 1.9
 
 startNode = Node(nodesCount, 0, distanceMatrix[0][0], None, minimunEdges, w)
 print("Start subtour:", startNode.subtour, "g:", startNode.g, "h:", startNode.h, "f:", startNode.f, "\n")
-fheappush(openList, (startNode.f, 0, startNode))
+# openList(openList, [startNode.f, 0, startNode])
+openList.push(startNode)
 
-while openList.num_nodes:
-    currentNode = fheappop(openList)[2]
+initialTime = time.time()
+
+while len(openList):
+    # element = heappop(openList)
+    # currentNode = element[2]
+    currentNode = openList.pop()
     currentTour = currentNode.subtour
-    print("Current tour:", currentTour)
-    if len(currentTour) == citiesCant + 1 and currentTour[0] == currentTour[len(currentTour) - 1]:
-        print("Finished!")
-        break
+    # print("Current tour:", currentTour)
+    # if len(currentTour) == citiesCant and currentTour[0] == currentTour[len(currentTour) - 1]:
+    #     print("Finished!")
+    #     break
 
-    notVisited = []
-    for city in citiesTSP:
-        if city not in currentTour:
-            notVisited.append(city)
+    notVisited = [city for city in citiesTSP if city not in currentTour]
 
-    print("Not visited:", notVisited)
+    # print("Not visited:", notVisited)
     
+    # print("City id:", currentNode.cityId, "Subtour:", currentNode.subtour, end=" ")
+    print("g: %.3f" % currentNode.g, end=" ")
+    print("h: %.3f" % currentNode.h, end=" ")
+    print("f: %.3f" % currentNode.f)
+    # print("id:", element[1])
     if len(notVisited) > 0:
         for cityId in notVisited:
             if cityId != currentNode.id:
-                lastCity = currentNode.cityId
                 nodesCount += 1
-                newNode = Node(nodesCount, cityId, distanceMatrix[lastCity][cityId] + currentNode.g, currentNode, minimunEdges, w)
-                print("City id:", cityId, "Subtour:", newNode.subtour, "g:", newNode.g, "h:", newNode.h, "f:", newNode.f)
+                newNode = Node(nodesCount, cityId, distanceMatrix[currentNode.cityId][cityId] + currentNode.g, currentNode, minimunEdges, w)
+                # print("City id:", cityId, "Subtour:", newNode.subtour, "g:", newNode.g, "h:", newNode.h, "f:", newNode.f)
                 currentNode.AddSuccessor(newNode)
-                fheappush(openList, (newNode.f, nodesCount, newNode))
+                # heappush(openList, [newNode.f, nodesCount, newNode])
+                openList.push(newNode)
     else:
-        lastCity = currentNode.cityId
-        newNode = Node(nodesCount, 0, distanceMatrix[lastCity][0] + currentNode.g, currentNode, minimunEdges, w)
+        newNode = Node(nodesCount, 0, distanceMatrix[currentNode.cityId][0] + currentNode.g, currentNode, minimunEdges, w)
         print("Finished!")
         print(newNode.subtour)
         print("G:", newNode.g)
+        print("Nodes cant:", newNode.id)
+        print("Time: ", time.time() - initialTime)
         break
     
-    print("")
+    # print("")
      
 print("\nError")
